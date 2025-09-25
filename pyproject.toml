@@ -5,6 +5,7 @@ description = "End-to-end Data & AI demo: Kafka → Spark → dbt → Airflow �
 authors = ["Önder <toeremis@outlook.de>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
