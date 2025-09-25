@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "retailops-lakehouse"
+version = "0.1.0"
+description = "End-to-end Data & AI demo: Kafka → Spark → dbt → Airflow → FastAPI → ML"
+authors = ["Önder <toeremis@outlook.de>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
