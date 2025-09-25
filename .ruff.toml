@@ -1,0 +1,15 @@
+line-length = 88          # gleiche Zeilenlänge wie Black
+target-version = "py311"  # wir arbeiten mit Python 3.11
+
+[lint]
+# E, F = Standard-PEP8 + Fehler
+# I = isort (Imports sortieren)
+# B = Bugbear (potenzielle Bugs & schlechte Praktiken)
+# UP = pyupgrade (modernisiert Python-Syntax)
+select = ["E", "F", "I", "B", "UP"]
+
+# Falls du bestimmte Regeln ausschalten willst
+ignore = []
+
+[format]
+# Ruff-Formatter ist deaktiviert, Black übernimmt das Formatieren.
