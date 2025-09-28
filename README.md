@@ -39,3 +39,14 @@ docker exec -it retailops-lakehouse-kafka-1 \
 docker exec -it retailops-lakehouse-kafka-1 \
   kafka-topics --bootstrap-server kafka:9092 --describe --topic orders.v1
 ```
+
+## Tests
+
+Unit- und Build-Tests für den Kafka Producer sind enthalten.  
+Lokal ausführen mit:
+
+```bash
+poetry run pytest
+```
+
+Die Tests laufen außerdem automatisch in GitHub Actions (CI).
