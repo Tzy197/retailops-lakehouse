@@ -1,0 +1,11 @@
+product_id,category,price_min,price_max
+p_1,accessories,5,25
+p_2,accessories,10,40
+p_3,home,15,60
+p_4,home,30,120
+p_5,electronics,50,200
+p_6,electronics,150,800
+p_7,clothing,20,90
+p_8,clothing,10,50
+p_9,beauty,5,70
+p_10,books,8,30
