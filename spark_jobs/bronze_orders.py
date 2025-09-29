@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+# spark_jobs/bronze_orders.py
+import os
+
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
@@ -6,15 +8,17 @@ from pyspark.sql import types as T
 APP_NAME = "bronze_orders"
 KAFKA_BOOTSTRAP = "kafka:9092"
 KAFKA_TOPIC = "orders.v1"
-OUTPUT_PATH = "/lake/bronze/orders"
-CHECKPOINT_PATH = "/lake/checkpoints/orders_bronze"
-BAD_RECORDS_PATH = "/lake/bronze/orders_corrupt"
 
-schema = T.StructType(
+# ENV-Override für Tests/CI
+OUTPUT_PATH = os.getenv("BRONZE_OUTPUT_PATH", "/lake/bronze/orders")
+CHECKPOINT_PATH = os.getenv("BRONZE_CHECKPOINT_PATH", "/lake/checkpoints/orders_bronze")
+BAD_RECORDS_PATH = os.getenv("BRONZE_BAD_PATH", "/lake/bronze/orders_corrupt")
+
+ORDER_SCHEMA = T.StructType(
     [
         T.StructField("order_id", T.StringType(), True),
         T.StructField("customer_id", T.StringType(), True),
-        T.StructField("ts", T.StringType(), True),  # ISO-8601
+        T.StructField("ts", T.StringType(), True),
         T.StructField(
             "items",
             T.ArrayType(
@@ -35,8 +39,12 @@ schema = T.StructType(
 )
 
 
+def build_spark(app_name: str = APP_NAME) -> SparkSession:
+    return SparkSession.builder.appName(app_name).getOrCreate()
+
+
 def main():
-    spark = SparkSession.builder.appName(APP_NAME).getOrCreate()
+    spark = build_spark()
     spark.sparkContext.setLogLevel("WARN")
 
     raw = (
@@ -57,7 +65,7 @@ def main():
         "offset",
         F.col("timestamp").alias("kafka_timestamp"),
         json_str.alias("json_value"),
-        F.from_json(json_str, schema).alias("data"),
+        F.from_json(json_str, ORDER_SCHEMA).alias("data"),
     )
 
     parsed = (
@@ -66,7 +74,6 @@ def main():
         .withColumn("p_date", F.to_date("ingested_at"))
     )
 
-    # Gute Records: data ist nicht NULL
     good = parsed.filter(F.col("data").isNotNull()).select(
         "kafka_key",
         "topic",
@@ -83,7 +90,6 @@ def main():
         "p_date",
     )
 
-    # Korrupte Records: data ist NULL → Original-JSON sichern
     bad = parsed.filter(F.col("data").isNull()).select(
         "kafka_key",
         "topic",
@@ -95,13 +101,17 @@ def main():
         "p_date",
     )
 
+    # kleine-Datei-Kontrolle (lokal)
+    good = good.repartition(4, F.col("p_date"))
+
     good_q = (
         good.writeStream.format("parquet")
         .option("path", OUTPUT_PATH)
         .option("checkpointLocation", CHECKPOINT_PATH)
+        .option("maxRecordsPerFile", "50000")
         .outputMode("append")
         .partitionBy("p_date")
-        .trigger(processingTime="5 seconds")
+        .trigger(processingTime="20 seconds")
         .start()
     )
 
@@ -111,7 +121,7 @@ def main():
         .option("checkpointLocation", CHECKPOINT_PATH + "_corrupt")
         .outputMode("append")
         .partitionBy("p_date")
-        .trigger(processingTime="5 seconds")
+        .trigger(processingTime="20 seconds")
         .start()
     )
 

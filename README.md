@@ -40,6 +40,19 @@ docker exec -it retailops-lakehouse-kafka-1 \
   kafka-topics --bootstrap-server kafka:9092 --describe --topic orders.v1
 ```
 
+## Bronze Layer (Orders)
+
+Erster Streaming-Job für den **Bronze Layer** mit Spark:
+
+- **Quelle:** Kafka-Topic `orders.v1` (Datenstrom aus Producer)
+- **Verarbeitung:** Spark Structured Streaming mit Kafka-Connector
+- **Ziel:** Speicherung der Rohdaten als **Parquet-Dateien** im Lake (`lake/bronze/orders/`)
+- **Struktur:** Partitionierung nach `p_date` (z. B. `p_date=2025-09-29`)
+- **Nutzen:**
+  - Persistente Ablage der eingehenden Rohdaten
+  - Grundlage für weitere Transformationen in Silver/Gold Layer
+  - Sicherung auch bei Streaming-Ausfällen
+
 ## Tests
 
 Unit- und Build-Tests für den Kafka Producer sind enthalten.  
