@@ -5,6 +5,7 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,6 +14,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # Neu: Java 17 für PySpark 3.5.x
+      - name: Set up Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -42,4 +50,9 @@ jobs:
         run: poetry run black --check .
 
       - name: Run Pytest
+        env:
+          # optional, stabilisiert lokale Spark-Initialisierung
+          PYSPARK_PYTHON: python
+          PYSPARK_DRIVER_PYTHON: python
+          SPARK_LOCAL_IP: 127.0.0.1
         run: poetry run pytest -v --maxfail=1
