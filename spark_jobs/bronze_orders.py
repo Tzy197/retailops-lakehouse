@@ -6,10 +6,11 @@ from pyspark.sql import functions as F
 from pyspark.sql import types as T
 
 APP_NAME = "bronze_orders"
-KAFKA_BOOTSTRAP = "kafka:9092"
-KAFKA_TOPIC = "orders.v1"
 
-# ENV-Override für Tests/CI
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "kafka:9092")
+KAFKA_TOPIC = os.getenv("TOPIC", "orders.v1")
+STARTING_OFFSETS = os.getenv("STARTING_OFFSETS", "earliest")
+
 OUTPUT_PATH = os.getenv("BRONZE_OUTPUT_PATH", "/lake/bronze/orders")
 CHECKPOINT_PATH = os.getenv("BRONZE_CHECKPOINT_PATH", "/lake/checkpoints/orders_bronze")
 BAD_RECORDS_PATH = os.getenv("BRONZE_BAD_PATH", "/lake/bronze/orders_corrupt")

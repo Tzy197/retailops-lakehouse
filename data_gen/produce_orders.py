@@ -2,6 +2,7 @@
 import argparse
 import csv
 import json
+import os
 import random
 import signal
 import sys
@@ -98,12 +99,32 @@ def _sigint_handler(_sig, _frm):
 def main():
     parser = argparse.ArgumentParser(description="Orders producer")
     parser.add_argument(
-        "--bootstrap", default="localhost:9093", help="Kafka bootstrap servers"
+        "--bootstrap",
+        default=os.getenv("KAFKA_BOOTSTRAP", "localhost:9093"),
+        help="Kafka bootstrap servers",
     )
-    parser.add_argument("--topic", default="orders.v1", help="Kafka topic")
-    parser.add_argument("--eps", type=float, default=10.0, help="Events pro Sekunde")
-    parser.add_argument("--max", type=int, default=0, help="Max Events (0 = unendlich)")
-    parser.add_argument("--seed", type=int, default=None, help="Random seed")
+    parser.add_argument(
+        "--topic", default=os.getenv("TOPIC", "orders.v1"), help="Kafka topic"
+    )
+    parser.add_argument(
+        "--eps",
+        type=float,
+        default=float(os.getenv("EPS", "10")),
+        help="Events pro Sekunde",
+    )
+    parser.add_argument(
+        "--max",
+        type=int,
+        default=int(os.getenv("MAX_EVENTS", "0")),
+        help="Max Events (0 = unendlich)",
+    )
+    seed_env = os.getenv("SEED")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=(int(seed_env) if seed_env not in (None, "") else None),
+        help="Random seed",
+    )
     args = parser.parse_args()
 
     if args.seed is not None:
